@@ -1,0 +1,11 @@
+{
+  "name": "remote-code-execution",
+  "version": "1.0.0",
+  "description": "Remote Code execution engine using node.js, docker, redis for multiple languages",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vinayak Singh",
+  "license": "ISC"
+}
