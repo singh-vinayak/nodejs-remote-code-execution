@@ -5,7 +5,9 @@
   "main": "server/index.js",
   "scripts": {
     "test": "npx jest",
-    "start": "nodemon server/index.js"
+    "start": "nodemon server/index.js",
+    "codeExec": "nodemon worker/index.js"
+
   },
   "author": "Vinayak Singh",
   "license": "ISC",
