@@ -1,16 +1,16 @@
-const languageConfig = (language) => {
+const languageConfig = (language, code) => {
     const images = {
-        js: 'node:current-alpine',
+        js: 'node:22-alpine',
         py: 'python:3.9-alpine',
         java: 'openjdk:11-jdk',
         cpp: 'gcc:latest',
     };
 
     const commands = {
-        js: `node /app/tempCode.js`,
-        py: `python3 /app/tempCode.py`,
-        java: `/bin/sh -c "javac /app/tempCode.java && java -cp /app tempCode"`,
-        cpp: `/bin/sh -c "g++ /app/tempCode.cpp -o /app/a.out && /app/a.out"`,
+        js: `node tempCode.js`,
+        py: `python3 tempCode.py`,
+        java: `echo '${code}' > Main.java && javac Main.java && java Main`,
+        cpp: `echo '${code}' > main.cpp && g++ -o main main.cpp && ./main`,
     };
 
     if (!images[language] || !commands[language]) {

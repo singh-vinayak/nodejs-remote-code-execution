@@ -7,29 +7,39 @@ const { languageConfig } = require('./configs/languageConfigs')
 async function executeCode(code, language) {
     try {
         // Create a temporary file
-        const tempDir = os.tmpdir();
-        const filename = path.join(tempDir, `tempCode.${language}`);
+        const filename = path.join(__dirname, 'shared', `tempCode.${language}`);
+        console.log('filename --->', filename)
         fs.writeFileSync(filename, code);
 
-        const { image, command } = languageConfig(language)
-        const finalCommand = `docker run --rm -v "${tempDir}:/app" ${image} sh -c "${command}"`;
+        if (!fs.existsSync(filename)) {
+            console.error(`File does not exist: ${filePath}`);
+            process.exit(1);
+        }
+        else {
 
-        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const { image, command } = languageConfig(language, code)
+                const finalCommand = `docker run --rm ${image} sh -c "${command}"`;
+                console.log('finalCommand --->', finalCommand)
+                return new Promise((resolve, reject) => {
 
-            exec(finalCommand, (error, stdout, stderr) => {
+                    exec(finalCommand, {timeout: 10000}, (error, stdout, stderr) => {
 
-                console.log(stdout)
+                        console.log(stdout)
 
-                // Clean up temp file
-                fs.unlinkSync(filename)
+                        // Clean up temp file
+                        fs.unlinkSync(filename)
 
-                if (error) {
-                    return reject(new Error(stderr || error.message));
-                }
+                        if (error) {
+                            console.log(error)
+                            return reject(new Error(stderr || error.message));
+                        }
 
-                resolve(stdout);
-            });
-        });
+                        resolve(stdout);
+                    });
+                });
+            }, 2000)
+        }
     } catch (error) {
         throw error
     }
