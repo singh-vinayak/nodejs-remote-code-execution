@@ -23,6 +23,7 @@ const executeCode = require('./executeCode');
             console.log(`Task ${task.taskId} completed.`);
         } catch (error) {
             // Save error to Redis
+            console.log(error);
             await redis.set(`task:${task.taskId}`, JSON.stringify({ status: 'failed', error: error.message }));
 
             console.error(`Task ${task.taskId} failed:`, error.message);

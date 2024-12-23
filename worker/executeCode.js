@@ -10,27 +10,35 @@ async function executeCode(code, language) {
         const tempDir = os.tmpdir();
         const filename = path.join(tempDir, `tempCode.${language}`);
         fs.writeFileSync(filename, code);
+        if (language === 'java') {
+            return new Promise((resolve,reject) => {
+                exec()
+            })
+        } else if (language === 'cpp') {
 
-        const { image, command } = languageConfig(language)
-        const finalCommand = `docker run --rm -v "${tempDir}:/app" ${image} sh -c "${command}"`;
+        } else {
+            const { image, command } = languageConfig(language)
+            const finalCommand = `docker run --rm -v "${tempDir}:/app" ${image} sh -c "${command}"`;
 
-        return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
 
-            exec(finalCommand, (error, stdout, stderr) => {
+                exec(finalCommand, (error, stdout, stderr) => {
 
-                console.log(stdout)
+                    console.log(stdout)
 
-                // Clean up temp file
-                fs.unlinkSync(filename)
+                    // Clean up temp file
+                    fs.unlinkSync(filename)
 
-                if (error) {
-                    return reject(new Error(stderr || error.message));
-                }
+                    if (error) {
+                        return reject(new Error(stderr || error.message));
+                    }
 
-                resolve(stdout);
+                    resolve(stdout);
+                });
             });
-        });
+        }
     } catch (error) {
+        console.log(error)
         throw error
     }
 }
