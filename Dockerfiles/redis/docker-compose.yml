@@ -6,9 +6,22 @@ services:
     container_name: redis-server
     ports:
       - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: "512M"
+        reservations:
+          cpus: '0.5'
+          memory: '256M'
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"] # Enable persistent storage
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: always
 
 volumes:
