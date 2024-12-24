@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - python_runtime
+      - java_runtime
+      - javascript_runtime
+      - golang_runtime
+      - cpp_runtime
+
+  python_runtime:
+    build:
+      context: ./language-servers/python
+    ports:
+      - "5000:5000"
+
+  java_runtime:
+    build:
+      context: ./language-servers/java
+    ports:
+      - "5001:5001"
+
+  javascript_runtime:
+    build:
+      context: ./language-servers/javascript
+    ports:
+      - "5002:5002"
+
+  golang_runtime:
+    build:
+      context: ./language-servers/golang
+    ports:
+      - "5003:5003"
+
+  cpp_runtime:
+    build:
+      context: ./language-servers/cpp
+    ports:
+      - "5004:5004"
