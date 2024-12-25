@@ -1,44 +1,115 @@
 version: '3.9'
 
 services:
+
+  redis-server:
+    image: redis:latest
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: "512M"
+        reservations:
+          cpus: '0.5'
+          memory: '256M'
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"] # Enable persistent storage
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+
   server:
     build:
-      context: ./server
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
       - python_runtime
-      - java_runtime
+      # - java_runtime
+      - redis-server
       - javascript_runtime
       - golang_runtime
       - cpp_runtime
+    working_dir: /app/server
+    environment:
+      PORT: 8000
+      REDIS_HOST: redis-server
+      REDIS_PORT: 6379
+      PYTHON_HOST: python_runtime
+      PYTHON_PORT: 5000
+      JAVA_HOST: java_runtime
+      JAVA_PORT: 5001
+      JAVASCRIPT_HOST: javascript_runtime
+      JAVASCRIPT_PORT: 5002
+      GOLANG_HOST: golang_runtime
+      GOLANG_PORT: 5003
+      CPP_HOST: cpp_runtime
+      CPP_PORT: 5004
+    command: ["node", "index.js"]
 
   python_runtime:
     build:
       context: ./language-servers/python
     ports:
       - "5000:5000"
+    depends_on:
+      - redis-server
 
   java_runtime:
     build:
       context: ./language-servers/java
     ports:
       - "5001:5001"
+    environment:
+      REDIS_HOST: redis-server
+      REDIS_PORT: 6379
+    depends_on:
+      - redis-server
+    volumes:
+      - /redis:/app/redis
+  
 
   javascript_runtime:
     build:
       context: ./language-servers/javascript
     ports:
       - "5002:5002"
+    environment:
+      REDIS_HOST: redis-server
+      REDIS_PORT: 6379
+    depends_on:
+      - redis-server
+    volumes:
+      - /redis:/app/redis
 
   golang_runtime:
     build:
       context: ./language-servers/golang
     ports:
       - "5003:5003"
+    depends_on:
+      - redis-server
+    volumes:
+      - /redis:/app/redis
 
   cpp_runtime:
     build:
       context: ./language-servers/cpp
     ports:
       - "5004:5004"
+    depends_on:
+      - redis-server
+    volumes:
+      - /redis:/app/redis
+
+volumes:
+  redis-data:
+  redis:

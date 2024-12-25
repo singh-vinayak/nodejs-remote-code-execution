@@ -12,9 +12,13 @@ const GOLANG_HOST = process.env.GOLANG_HOST ?? 'golang_runtime'
 const GOLANG_PORT = process.env.GOLANG_PORT ?? 5003
 const CPP_HOST = process.env.CPP_HOST ?? 'cpp_runtime'
 const CPP_PORT = process.env.CPP_PORT ?? 5004
+const { Queue } = require('bullmq');
+const redisClient = require('../redis/redis')
 const axios = require('axios')
 app.use(express.json())
 app.use(express.text())
+
+const queue = new Queue('code_execution', { connection: redisClient });
 
 app.get('/api/v1/hello', (req, res, next) => {
     res.status(200).send({
@@ -25,11 +29,16 @@ app.get('/api/v1/hello', (req, res, next) => {
 
 const endpoints = {
     python: `http://${PYTHON_HOST}:${PYTHON_PORT}/run`,
-    java: `http://${JAVA_HOST}:${JAVA_PORT}/run`,
+    // java: `http://${JAVA_HOST}:${JAVA_PORT}/run`,
     javascript: `http://${JAVASCRIPT_HOST}:${JAVASCRIPT_PORT}/run`,
     golang: `http://${GOLANG_HOST}:${GOLANG_PORT}/run`,
     cpp: `http://${CPP_HOST}:${CPP_PORT}/run`,
 };
+
+async function addTaskToQueue(task) {
+    await queue.add('execute', task, { attempts: 3, backoff: 5000 });
+    console.log('Task added to queue:', task);
+  }
 
 app.post('/submit', async (req, res) => {
     const { code, language } = req.body;
@@ -40,6 +49,7 @@ app.post('/submit', async (req, res) => {
     }
 
     try {
+        addTaskToQueue({ code: code , language: language });
         const response = await axios.post(endpoint, { code });
         res.json(response.data);
     } catch (err) {
