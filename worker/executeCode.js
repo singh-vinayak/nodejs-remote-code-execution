@@ -25,7 +25,7 @@ async function executeCode(code, language) {
             return executeCommand(finalCommand);
         }
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         throw error
     }
 }
@@ -35,13 +35,13 @@ const executeCommand = async (command) => {
 
         exec(command, (error, stdout, stderr) => {
 
-            console.log(stdout)
+            // console.log(stdout)
 
             // Clean up temp file
             fs.unlinkSync(filename)
 
             if (error) {
-                console.log(error)
+                // console.log(error)
                 return reject(new Error(stderr || error.message));
             }
             resolve(stdout);

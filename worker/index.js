@@ -1,7 +1,9 @@
 const redis = require('../server/redis');
 const executeCode = require('./executeCode');
+const { pool } = require('../db/db')
+const { insertJobRecord } = require('../db/dbExecutions')
 
-(async function processQueue() {
+async function processQueue() {
     console.log('Worker started, waiting for tasks...');
 
     while (true) {
@@ -20,13 +22,35 @@ const executeCode = require('./executeCode');
             // Save result to Redis
             await redis.set(`task:${task.taskId}`, JSON.stringify({ status: 'completed', result }));
 
-            console.log(`Task ${task.taskId} completed.`);
+            const dbUpdation = await insertJobRecord({
+                job_id: task.taskId,
+                language: task.language,
+                code: task.code,
+                output: result,
+                status: 'completed',
+                error: null
+            })
+
+            if (dbUpdation.success) {
+                console.log(`Task ${task.taskId} completed.`);
+            } else {
+                await redis.set(`task:${task.taskId}`, JSON.stringify({ status: 'failed', error: dbUpdation.error }));
+            }
         } catch (error) {
             // Save error to Redis
-            console.log(error);
+            // console.log(error);
             await redis.set(`task:${task.taskId}`, JSON.stringify({ status: 'failed', error: error.message }));
-
+            const dbUpdation = await insertJobRecord({
+                job_id: task.taskId,
+                language: task.language,
+                code: task.code,
+                output: null,
+                status: 'failed',
+                error: error.message
+            })
             console.error(`Task ${task.taskId} failed:`, error.message);
         }
     }
-})();
+}
+
+processQueue();

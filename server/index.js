@@ -5,6 +5,7 @@ const PORT = process.env.PORT ?? 3000
 const submitRouter = require('./routes/submit')
 const statusRouter = require('./routes/status')
 const redisClient = require('./redis')
+const { pool } = require('../db/db')
 app.use(express.json())
 app.use(express.text())
 
